@@ -15,6 +15,12 @@
              var clipRootTemplate = '<html><head></head><body pulse-clip></body></html>';
              var clipRootTemplateUrl;
              var clipRootTemplatePromise;
+             var clipTypeDefs = {};
+
+             pulseProvider.addClipType = function (name, def) {
+                 // TODO: validate/normalize this thing
+                 clipTypeDefs[name] = def;
+             };
 
              pulseProvider.setPlaylistGenerator = function (generator) {
                  playlistGenerator = generator;
@@ -111,8 +117,13 @@
 
                      getNextClip().then(
                          function (clipDef) {
+                             console.log('Next clip will be ', clipDef);
+                             var clipType = clipTypeDefs[clipDef.type];
+                             if (! clipType) {
+                                 throw new Error('Playlist called for unknown clip type ' + clipDef.type);
+                             }
                              var params = clipDef.params || {};
-                             var resolve = clipDef.resolve || {};
+                             var resolve = clipType.resolve || {};
                              var resolveLocals = {
                                  pulseClipParams: params
                              };
@@ -125,12 +136,12 @@
                                          $injector.invoke(value, undefined, resolveLocals)
                                  );
                              }
-                             if (angular.isDefined(clipDef.template)) {
-                                 locals.$template = clipDef.template;
+                             if (angular.isDefined(clipType.template)) {
+                                 locals.$template = clipType.template;
                              }
-                             else if (angular.isDefined(clipDef.templateUrl)) {
+                             else if (angular.isDefined(clipType.templateUrl)) {
                                  locals.$template = $http.get(
-                                     clipDef.templateUrl,
+                                     clipType.templateUrl,
                                      {cache: $templateCache}
                                  ).then(
                                      function(response) {
@@ -142,12 +153,14 @@
                              $q.all(locals).then(
                                  function (locals) {
                                      defer.resolve(
-                                         {
-                                             controller: clipDef.controller,
-                                             template: locals.$template,
-                                             params: clipDef.params,
-                                             locals: locals
-                                         }
+                                         inherit(
+                                             clipType,
+                                             {
+                                                 template: locals.$template,
+                                                 params: clipDef.params,
+                                                 locals: locals
+                                             }
+                                         )
                                      );
                                  },
                                  function (error) {
@@ -162,6 +175,7 @@
 
                  prepareNextClip().then(
                      function (clip) {
+                         console.log('Prepared clip ', clip);
                          $rootScope.$broadcast(
                              'pulseClipPrepared',
                              clip
