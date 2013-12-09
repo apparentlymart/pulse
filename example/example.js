@@ -61,12 +61,12 @@ app.factory(
 
 app.controller(
     'pulseWeatherExampleController',
-    function ($scope, $timeout, forecast) {
+    function ($scope, $timeout, forecast, pulseClipParams) {
         $scope.forecast = forecast;
         $scope.$on(
             'pulseClipBegin',
             function () {
-                console.log('weather example controller beginning');
+                console.log('weather example controller beginning for', pulseClipParams);
                 $timeout(
                     function () {
                         $scope.pulseSignals.readyToEnd();
