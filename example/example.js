@@ -1,5 +1,5 @@
 
-var app = angular.module("pulseExample", ['ng', 'pulse']);
+var app = angular.module("pulseExample", ['ng', 'ngAnimate', 'pulse']);
 
 app.config(
     function (pulseProvider) {
@@ -45,6 +45,12 @@ app.factory(
                         params: {
                             location: 'London, UK'
                         }
+                    },
+                    {
+                        type: 'weather',
+                        params: {
+                            location: 'San Francisco, CA'
+                        }
                     }
                 ]
             );
@@ -55,7 +61,19 @@ app.factory(
 
 app.controller(
     'pulseWeatherExampleController',
-    function ($scope, forecast) {
+    function ($scope, $timeout, forecast) {
         $scope.forecast = forecast;
+        $scope.$on(
+            'pulseClipBegin',
+            function () {
+                console.log('weather example controller beginning');
+                $timeout(
+                    function () {
+                        $scope.pulseSignals.readyToEnd();
+                    },
+                    3000
+                );
+            }
+        );
     }
 );

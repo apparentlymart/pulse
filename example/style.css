@@ -1,0 +1,29 @@
+
+.pulse-clip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.pulse-clip.ng-enter, .pulse-clip.ng-leave {
+    -webkit-transition: 1s linear all;
+    transition: 1s linear all;
+}
+
+.pulse-clip.ng-enter {
+    opacity: 0;
+}
+.pulse-clip.ng-enter-active {
+    opacity: 1;
+}
+.pulse-clip.ng-leave {
+    opacity: 1;
+}
+.pulse-clip.ng-leave-active {
+    opacity: 0;
+}
