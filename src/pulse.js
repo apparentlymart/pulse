@@ -323,6 +323,7 @@
                          // we're inserting this much earlier to give a chance for any
                          // necessary resource to load before we transition in.
                          newFrame.attr('class', 'pulse-clip ng-enter pulse-clip-preenter');
+                         newFrame.attr('frameborder', '0');
                          $element.append(newFrame);
                          nextScope = newScope;
                          nextFrame = newFrame;
