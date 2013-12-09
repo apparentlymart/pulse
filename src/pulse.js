@@ -399,6 +399,7 @@
                                  $animate.leave(
                                      currentFrame,
                                      function () {
+                                         doneExiting = true;
                                          console.log('done exiting');
                                          maybeDoneAnimating();
                                      }
