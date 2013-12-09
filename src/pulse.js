@@ -72,33 +72,27 @@
 
                  function getNextClip() {
                      var defer = $q.defer();
-                     console.log('getting next clip');
 
                      if (nextClipIndex >= clipQueue.length) {
-                         console.log('queue is depleted');
                          // We've depleted the queue, so let's try to generate some more.
                          var tryUpdatePlaylist;
                          tryUpdatePlaylist = function () {
-                             console.log('trying to generate more clips');
                              if (angular.isString(playlistGenerator)) {
                                  playlistGenerator = $injector.get(playlistGenerator);
                              }
                              playlistGenerator().then(
                                  function (clipDefs) {
                                      if (clipDefs.length < 1) {
-                                         console.log('generator produced no clips');
                                          // nothing to play right now? try again in a bit
                                          $timeout(tryUpdatePlaylist, 3000);
                                      }
                                      else {
-                                         console.log('got some clips', clipDefs);
                                          clipQueue = clipDefs;
                                          nextClipIndex = 1;
                                          defer.resolve(clipQueue[0]);
                                      }
                                  },
                                  function () {
-                                     console.log('generator failed');
                                      // playlist generation failed, so wait and try again in a bit.
                                      $timeout(tryUpdatePlaylist, 3000);
                                  }
@@ -119,7 +113,6 @@
 
                      getNextClip().then(
                          function (clipDef) {
-                             console.log('Next clip will be ', clipDef);
                              var clipType = clipTypeDefs[clipDef.type];
                              if (! clipType) {
                                  throw new Error('Playlist called for unknown clip type ' + clipDef.type);
@@ -194,7 +187,6 @@
                  $rootScope.$on(
                      'pulseClipReadyToEnd',
                      function (evt, clip) {
-                         console.log('current clip signalled that it is ready to end');
                          lifecycleDefers.currentClipReadyToEnd.resolve(clip);
                      }
                  );
@@ -202,7 +194,6 @@
                  $rootScope.$on(
                      'pulseClipReadyToStart',
                      function (evt) {
-                         console.log('next clip signalled that it is ready to start');
                          lifecycleDefers.nextClipReadyToStart.resolve();
                      }
                  );
@@ -210,7 +201,6 @@
                  $rootScope.$on(
                      'pulseClipTransitionStarting',
                      function (evt, newClip, oldClip) {
-                         console.log('view signalled that it is starting the transition');
                          lifecycleDefers.clipTransitionStart.resolve();
                      }
                  );
@@ -218,7 +208,6 @@
                  $rootScope.$on(
                      'pulseClipTransitionEnding',
                      function (evt, newClip, oldClip) {
-                         console.log('view signalled that it is ending the transition');
                          lifecycleDefers.clipTransitionEnd.resolve();
                      }
                  );
@@ -230,10 +219,8 @@
                      lifecycleDefers.clipTransitionStart = $q.defer();
                      lifecycleDefers.clipTransitionEnd = $q.defer();
 
-                     console.log('running a clip lifecycle');
                      lifecycleDefers.nextClipResolved.promise.then(
                          function (clip) {
-                             console.log('next clip resolved:', clip);
                              nextClip = clip;
                              $rootScope.$broadcast(
                                  'pulseClipPrepared',
@@ -241,22 +228,18 @@
                              );
                              lifecycleDefers.nextClipReadyToStart.promise.then(
                                  function () {
-                                     console.log('next clip ready to start');
                                      lifecycleDefers.currentClipReadyToEnd.promise.then(
                                          function (oldClip) {
-                                             console.log('current clip ready to end');
                                              $rootScope.$broadcast(
                                                  'pulseStartClipTransition'
                                              );
                                              lifecycleDefers.clipTransitionStart.promise.then(
                                                  function () {
-                                                     console.log('starting clip transition');
                                                      lifecycleDefers.currentClipReadyToEnd = $q.defer();
                                                      currentClip = clip;
                                                      nextClip = undefined;
                                                      lifecycleDefers.clipTransitionEnd.promise.then(
                                                          function () {
-                                                             console.log('ended clip transition');
                                                              runClipLifecycle();
                                                          }
                                                      );
@@ -365,7 +348,6 @@
                      scope.$on(
                          'pulseStartClipTransition',
                          function (evt) {
-                             console.log('view is starting clip transition');
                              scope.$emit(
                                  'pulseClipTransitionStarting'
                              );
@@ -391,7 +373,6 @@
                                  $element,
                                  currentFrame,
                                  function () {
-                                     console.log('done entering');
                                      doneEntering = true;
                                      maybeDoneAnimating();
                                  }
@@ -401,7 +382,6 @@
                                      currentFrame,
                                      function () {
                                          doneExiting = true;
-                                         console.log('done exiting');
                                          maybeDoneAnimating();
                                      }
                                  );
