@@ -300,42 +300,34 @@
                          clip.scope = newScope;
                          locals.$scope = newScope;
                          var controller = $controller(clip.controller, locals);
-                         var newFrame = angular.element('<iframe></iframe>');
+                         var newFrame = angular.element('<div></div>');
+                         var shadow = angular.element(newFrame[0].webkitCreateShadowRoot());
                          // we pre-set ng-enter on this so it can benefit from
                          // any initial animation properties set in the CSS even though
                          // we're inserting this much earlier to give a chance for any
                          // necessary resource to load before we transition in.
                          newFrame.attr('class', 'pulse-clip ng-enter pulse-clip-preenter');
-                         newFrame.attr('frameborder', '0');
                          $element.append(newFrame);
                          nextScope = newScope;
                          nextFrame = newFrame;
-                         pulse.getClipRootTemplate().then(
-                             function (rootTemplate) {
-                                 // if we've got a new next clip in the mean time then ignore
-                                 if (nextScope !== newScope) {
-                                     return;
-                                 }
-                                 newFrame[0].contentDocument.write(rootTemplate);
-                                 newFrame[0].contentDocument.pulseTemplate = template;
-                                 newFrame[0].contentDocument.pulseScope = newScope;
-                                 newScope.pulseSignals = {
-                                     readyToEnd: function () {
-                                         scope.$emit(
-                                             'pulseClipReadyToEnd',
-                                             clip
-                                         );
-                                     }
-                                 };
-                                 var ngStyleElem = newFrame[0].contentDocument.createElement('style');
-                                 ngStyleElem.innerText = '@charset "UTF-8";[ng\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide{display:none !important;}ng\:form{display:block;}.ng-animate-start{border-spacing:1px 1px;-ms-zoom:1.0001;}.ng-animate-active{border-spacing:0px 0px;-ms-zoom:1;}';
-                                 newFrame[0].contentDocument.head.appendChild(ngStyleElem);
-                                 var link = $compile(angular.element(newFrame[0].contentDocument));
-                                 // we use the outer scope for the root template, saving newScope
-                                 // for the view's own template.
-                                 link(scope);
+                         shadow.html(template);
+                         newScope.pulseSignals = {
+                             readyToEnd: function () {
+                                 scope.$emit(
+                                     'pulseClipReadyToEnd',
+                                     clip
+                                 );
                              }
+                         };
+
+                         var link = $compile(shadow);
+                         link(newScope);
+                         scope.$emit(
+                             'pulseClipReadyToStart'
                          );
+                         var ngStyleElem = document.createElement('style');
+                         ngStyleElem.innerText = '@charset "UTF-8";[ng\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide{display:none !important;}ng\:form{display:block;}.ng-animate-start{border-spacing:1px 1px;-ms-zoom:1.0001;}.ng-animate-active{border-spacing:0px 0px;-ms-zoom:1;}';
+                         shadow[0].appendChild(ngStyleElem);
                      }
 
                      scope.$on(
@@ -368,6 +360,7 @@
                                  }
                              }
 
+                             nextFrame.removeClass('pulse-clip-preenter');
                              $animate.enter(
                                  nextFrame,
                                  $element,
@@ -393,31 +386,6 @@
                          }
                      );
 
-                 }
-             };
-         }
-     );
-
-     pulse.directive(
-         'pulseClip',
-         function (pulse, $compile) {
-             return {
-                 restrict: 'A',
-                 terminal: true,
-                 priority: 400,
-                 link: function(scope, $element, attr) {
-                     var clipDoc = $element[0].ownerDocument;
-                     var template = clipDoc.pulseTemplate;
-                     var localScope = clipDoc.pulseScope;
-                     if (! template) {
-                         throw new Error('pulse-clip directive can only be used in clip root template');
-                     }
-                     $element.html(template);
-                     var link = $compile($element.children());
-                     link(localScope);
-                     scope.$emit(
-                         'pulseClipReadyToStart'
-                     );
                  }
              };
          }
